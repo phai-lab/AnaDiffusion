@@ -1,0 +1,43 @@
+{
+  "spacing": "1.5,1.5,1.5",
+  "size": "128,128,128",
+  "hemi_size": "64,128,128",
+  "sub_size": "128,96,64",
+  "torch_autocast": true,
+
+  "crop_template_dir": "data/template/dilated_r2",
+  "paste_template_dir": "data/template/dilated_r0",
+
+  "whole_ae_ckpt": "<PATH-TO-WHOLE-BRAIN-AE-CHECKPOINT>",
+  "whole_unet_ckpt": "<PATH-TO-COMPOSITIONAL-WHOLE-BRAIN-UNET-CHECKPOINT>",
+  "hemi_ae_ckpt": "<PATH-TO-HEMI-AE-CHECKPOINT>",
+  "hemi_unet_ckpt": "<PATH-TO-HEMI-UNET-CHECKPOINT>",
+  "sub_ae_ckpt": "<PATH-TO-SUB-AE-CHECKPOINT>",
+  "sub_unet_ckpt": "<PATH-TO-SUB-UNET-CHECKPOINT>",
+
+  "ae_latent_ch": 8,
+  "ae_num_channels": "64,128,256",
+  "ldm_num_channels": "256,256,512",
+  "ldm_num_head_channels": "0,64,64",
+  "hemi_cond_dim": 64,
+
+  "ddim_steps": 50,
+  "handoff_steps": 10,
+  "part_t_ratio": 1.0,
+  "part_t_max": 300,
+  "part_ddim_steps": 100,
+  "cerebellum_erosion": 4,
+  "feather_sigma": 1.5,
+  "tissue_margin": 0.1,
+  "bg_value": -1.0,
+
+  "num_samples": 291,
+  "seed": 1017,
+  "save_assets": false,
+  "outdir": "samples/compositional",
+
+  "edit": false,
+  "recipient": 0,
+  "donor": 1,
+  "part": "sub"
+}

@@ -1,0 +1,14 @@
+{
+  "csv": "<PATH-TO-WHOLE-BRAIN-AND-PARTS-CSV>",
+  "data_split_json_path": "<PATH-TO-PATIENT-SPLIT-JSON>",
+  "whole_key": "whole_brain",
+  "spacing": "1.5,1.5,1.5",
+  "size": "128,128,128",
+  "hemi_size": "64,128,128",
+  "sub_size": "128,96,64",
+  "template_dir": "data/template/dilated_r2",
+  "seam_radius": 2,
+  "num_samples": 291,
+  "real_feature_cache": "eval/real_test_medicalnet_features.pt",
+  "out": "eval/medicalnet_fid.json"
+}

@@ -1,0 +1,28 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+
+# Local environments and scratch files
+.env
+.venv/
+env/
+venv/
+.ipynb_checkpoints/
+
+# Training and inference outputs
+checkpoints/
+runs/
+outputs/
+logs/
+wandb/
+*.ckpt
+*.pt
+*.pth
+*.pdf
+
+# Project page will be hosted separately
+project_page/
+
+# Generated outputs
+/samples/
+/eval/

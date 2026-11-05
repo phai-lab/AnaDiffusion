@@ -1,0 +1,67 @@
+{
+    "I000000": {
+        "Subject": "EXAMPLE_SUBJECT_001",
+        "Group": "CN",
+        "Sex": "F",
+        "Age": 76,
+        "Visit": "v01",
+        "Modality": "MRI",
+        "Description": "MT1; GradWarp; N3m",
+        "Type": "Pre-processed",
+        "Acq Date": "01/01/1950",
+        "Format": "NiFTI",
+        "Downloaded": "Yes"
+    },
+    "I000001": {
+        "Subject": "EXAMPLE_SUBJECT_002",
+        "Group": "MCI",
+        "Sex": "M",
+        "Age": 68,
+        "Visit": "v02",
+        "Modality": "MRI",
+        "Description": "MT1; GradWarp; N3m",
+        "Type": "Pre-processed",
+        "Acq Date": "02/01/1958",
+        "Format": "NiFTI",
+        "Downloaded": "Yes"
+    },
+    "I000002": {
+        "Subject": "EXAMPLE_SUBJECT_003",
+        "Group": "AD",
+        "Sex": "F",
+        "Age": 75,
+        "Visit": "v04",
+        "Modality": "MRI",
+        "Description": "MT1; GradWarp; N3m",
+        "Type": "Pre-processed",
+        "Acq Date": "03/01/1951",
+        "Format": "NiFTI",
+        "Downloaded": "Yes"
+    },
+    "I000003": {
+        "Subject": "EXAMPLE_SUBJECT_004",
+        "Group": "CN",
+        "Sex": "M",
+        "Age": 80,
+        "Visit": "v06",
+        "Modality": "MRI",
+        "Description": "MT1; GradWarp; N3m",
+        "Type": "Pre-processed",
+        "Acq Date": "04/01/1946",
+        "Format": "NiFTI",
+        "Downloaded": "Yes"
+    },
+    "I000004": {
+        "Subject": "EXAMPLE_SUBJECT_005",
+        "Group": "AD",
+        "Sex": "F",
+        "Age": 77,
+        "Visit": "v08",
+        "Modality": "MRI",
+        "Description": "MT1; GradWarp; N3m",
+        "Type": "Pre-processed",
+        "Acq Date": "05/01/1949",
+        "Format": "NiFTI",
+        "Downloaded": "Yes"
+    }
+}
