@@ -10,7 +10,7 @@
   <a href="https://anadiffusion.github.io"><img src="https://img.shields.io/badge/Project-Page-2F80ED?style=for-the-badge&logo=githubpages&logoColor=white" alt="Project Page"></a>
 </p>
 
-<img src="media/pipeline_may5.png" alt="AnaDiffusion pipeline overview" width="100%">
+<img src="media/figure-2-method.png" alt="AnaDiffusion method overview" width="100%">
 
 </div>
 
