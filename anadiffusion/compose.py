@@ -42,6 +42,7 @@ class ScaffoldInjector:
         experts: PartExperts,
         crop_masks: Dict[str, torch.Tensor],
         paste_masks: Dict[str, torch.Tensor],
+        spacing: Tuple[float, float, float],
         whole_shape: Tuple[int, int, int],
         hemi_shape: Tuple[int, int, int],
         sub_shape: Tuple[int, int, int],
@@ -58,7 +59,7 @@ class ScaffoldInjector:
         self.scale = float(whole_scale_factor)
         self.experts = experts
         self.crop_masks, self.paste_masks = crop_masks, paste_masks
-        self.boxes = part_boxes(whole_shape, hemi_shape, sub_shape)
+        self.boxes = part_boxes(spacing, whole_shape, hemi_shape, sub_shape)
         self.part_t_ratio = float(part_t_ratio)
         self.part_t_max = int(min(part_t_max, NUM_TRAIN_TIMESTEPS - 1))
         self.cerebellum_erosion = int(cerebellum_erosion)

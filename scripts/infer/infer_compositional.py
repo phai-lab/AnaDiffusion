@@ -128,6 +128,7 @@ def build_injector(args, device):
         experts=experts,
         crop_masks=load_template_masks(args.crop_template_dir, spacing, size, device),
         paste_masks=load_template_masks(args.paste_template_dir, spacing, size, device),
+        spacing=spacing,
         whole_shape=size,
         hemi_shape=hemi_size,
         sub_shape=sub_size,

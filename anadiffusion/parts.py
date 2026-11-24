@@ -8,11 +8,22 @@ import torch
 import torch.nn.functional as F
 from torch.amp import autocast
 
+from anadiffusion.data import grid_origin
 from anadiffusion.models import HemisphereConditioner, alphas_cumprod, build_ddim_scheduler
 from anadiffusion.templates import PART_NAMES, gaussian_blur3d
 
 HEMISPHERE_SIDE = {"lhemi": 0, "rhemi": 1}
 _PAD = 40
+# The preprocessed scans share a 1 mm MNI152 grid of NATIVE_SHAPE voxels. The part
+# images were cut from it at these (start, shape) boxes before being resampled and
+# padded on their own (data_prep/prep_data.py); the right hemisphere is cut from the
+# left-right mirrored scan.
+NATIVE_SHAPE = (160, 192, 160)
+NATIVE_PART_BOXES = {
+    "lhemi": ((64, 0, 0), (96, 192, 160)),
+    "rhemi": ((64, 0, 0), (96, 192, 160)),
+    "sub": ((0, 0, 0), (160, 128, 96)),
+}
 
 
 def flip_lr(x: torch.Tensor) -> torch.Tensor:
@@ -26,21 +37,32 @@ def mask_background(x: torch.Tensor, mask: torch.Tensor, bg_value: float) -> tor
 
 
 def part_boxes(
+    spacing: Tuple[float, float, float],
     whole_shape: Tuple[int, int, int],
     hemi_shape: Tuple[int, int, int],
     sub_shape: Tuple[int, int, int],
 ) -> Dict[str, Tuple[Tuple[int, int, int], Tuple[int, int, int]]]:
-    """Fixed, template-aligned crop boxes (start, size) of the three parts.
+    """Crop boxes (start, size) of the three parts on the whole-brain grid.
 
-    The hemispheres split the volume along the left-right axis; the
-    cerebellar-brainstem box sits at the origin of the inferior-posterior corner,
-    matching the crops the part models were trained on.
+    Each box covers the same anatomy as the part images the experts were trained
+    on, voxel for voxel. The part images were resampled and padded separately from
+    the whole-brain scans, so their grids are offset from the whole-brain grid; the
+    offset is computed here and rounded to the nearest voxel.
     """
-    return {
-        "lhemi": ((whole_shape[0] - hemi_shape[0], 0, 0), tuple(hemi_shape)),
-        "rhemi": ((0, 0, 0), tuple(hemi_shape)),
-        "sub": ((0, 0, 0), tuple(sub_shape)),
-    }
+    origin = grid_origin(NATIVE_SHAPE, spacing, whole_shape)
+    # left-right position of whole-brain voxel 0 once the scan is mirrored
+    mirrored_origin = NATIVE_SHAPE[0] - 1 - origin[0] - spacing[0] * (whole_shape[0] - 1)
+    boxes = {}
+    for name in PART_NAMES:
+        size = tuple(sub_shape if name == "sub" else hemi_shape)
+        native_start, native_shape = NATIVE_PART_BOXES[name]
+        part_origin = grid_origin(native_shape, spacing, size)
+        start = [(native_start[a] + part_origin[a] - origin[a]) / spacing[a] for a in range(3)]
+        if name == "rhemi":
+            # the crop is mirrored after cropping, so the box is placed in the mirrored scan
+            start[0] = whole_shape[0] - size[0] - (native_start[0] + part_origin[0] - mirrored_origin) / spacing[0]
+        boxes[name] = (tuple(int(round(s)) for s in start), size)
+    return boxes
 
 
 def _clamp_start(start, size, shape):

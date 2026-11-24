@@ -4,45 +4,16 @@ from __future__ import annotations
 
 import math
 import os
-from typing import Dict, Sequence, Tuple
+from typing import Dict, Tuple
 
 import torch
 import torch.nn.functional as F
 from monai import transforms
 
+from anadiffusion.data import grid_transforms
+
 PART_NAMES = ("lhemi", "rhemi", "sub")
 MASK_FILES = {"lhemi": "lhemi_mask.nii.gz", "rhemi": "rhemi_mask.nii.gz", "sub": "sub_mask.nii.gz"}
-# How each template is anchored when padded/cropped to the whole-brain grid.
-MASK_ANCHORS = {
-    "lhemi": ("end", "start", "start"),
-    "rhemi": ("start", "start", "start"),
-    "sub": ("start", "start", "start"),
-}
-
-
-def _align_to_shape(mask: torch.Tensor, shape: Sequence[int], anchors: Sequence[str]) -> torch.Tensor:
-    x = (mask > 0).float()
-    for axis, target in enumerate(shape):
-        current = int(x.shape[1 + axis])
-        if current <= target:
-            continue
-        delta = current - target
-        start = {"start": 0, "end": delta}.get(anchors[axis], delta // 2)
-        index = [slice(None)] * x.ndim
-        index[1 + axis] = slice(start, start + target)
-        x = x[tuple(index)]
-    pads = []
-    for axis in reversed(range(3)):
-        delta = max(0, int(shape[axis]) - int(x.shape[1 + axis]))
-        if anchors[axis] == "start":
-            pads.extend([0, delta])
-        elif anchors[axis] == "end":
-            pads.extend([delta, 0])
-        else:
-            pads.extend([delta // 2, delta - delta // 2])
-    if any(pads):
-        x = F.pad(x, pads, mode="constant", value=0.0)
-    return (x > 0.5).float()
 
 
 def load_template_masks(
@@ -51,8 +22,10 @@ def load_template_masks(
     whole_shape: Tuple[int, int, int],
     device: torch.device,
 ) -> Dict[str, torch.Tensor]:
-    """Load the three part templates resampled and aligned to the whole-brain grid.
+    """Load the three part templates on the whole-brain grid.
 
+    The templates are 1 mm volumes in the same MNI152 space as the preprocessed
+    scans, so they are resampled, padded, and cropped exactly like the images.
     Returns {"lhemi", "rhemi", "sub"} -> float masks of shape [1,1,D,H,W].
     """
     paths = {name: os.path.join(template_dir, MASK_FILES[name]) for name in PART_NAMES}
@@ -67,16 +40,12 @@ def load_template_masks(
             transforms.Lambdad(keys=keys, func=lambda x: x[0]),
             transforms.EnsureChannelFirstd(keys=keys, channel_dim="no_channel"),
             transforms.EnsureTyped(keys=keys),
-            transforms.Spacingd(keys=keys, pixdim=spacing, mode=("nearest",) * len(keys)),
+            *grid_transforms(keys, spacing, whole_shape, mode=("nearest",) * len(keys), pad_value=0.0),
             transforms.Lambdad(keys=keys, func=lambda x: (x > 0).float()),
         ]
     )
     loaded = transform(paths)
-    masks = {}
-    for name in PART_NAMES:
-        aligned = _align_to_shape(loaded[name], whole_shape, MASK_ANCHORS[name])
-        masks[name] = torch.as_tensor(aligned).float().unsqueeze(0).to(device)
-    return masks
+    return {name: torch.as_tensor(loaded[name]).float().unsqueeze(0).to(device) for name in PART_NAMES}
 
 
 def dilate(mask: torch.Tensor, radius: int) -> torch.Tensor:

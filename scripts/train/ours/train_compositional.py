@@ -250,7 +250,7 @@ def main():
 
     whole_ae, whole_unet, hemi_ae, hemi_unet, hemi_conditioner, sub_ae, sub_unet = build_models(args, device)
     whole_sf, hemi_sf, sub_sf = resolve_scale_factors(
-        args, whole_ae, hemi_ae, sub_ae, train_loader, crop_masks, part_boxes(size, hemi_size, sub_size), amp, device
+        args, whole_ae, hemi_ae, sub_ae, train_loader, crop_masks, part_boxes(spacing, size, hemi_size, sub_size), amp, device
     )
     experts = PartExperts(
         hemi_ae=hemi_ae,
@@ -271,6 +271,7 @@ def main():
         experts=experts,
         crop_masks=crop_masks,
         paste_masks=paste_masks,
+        spacing=spacing,
         whole_shape=size,
         hemi_shape=hemi_size,
         sub_shape=sub_size,

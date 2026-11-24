@@ -8,8 +8,20 @@ from typing import Optional, Tuple
 import pandas as pd
 import torch
 from monai import transforms
-from monai.data import DataLoader, Dataset
+from monai.data import DataLoader, Dataset, MetaTensor
 from torch.utils.data import DistributedSampler
+
+
+def grid_transforms(keys, spacing: Tuple[float, float, float], size: Tuple[int, int, int], mode, pad_value: float):
+    """Resample to `spacing`, pad to a multiple of 32, and centre-crop to `size`.
+
+    Images and template masks go through the same steps, so they share one voxel grid.
+    """
+    return [
+        transforms.Spacingd(keys=keys, pixdim=spacing, mode=mode),
+        transforms.DivisiblePadd(keys=keys, k=32, mode="constant", constant_values=pad_value),
+        transforms.CenterSpatialCropd(keys=keys, roi_size=size),
+    ]
 
 
 def build_image_transforms(spacing: Tuple[float, float, float], size: Tuple[int, int, int]):
@@ -21,11 +33,16 @@ def build_image_transforms(spacing: Tuple[float, float, float], size: Tuple[int,
             transforms.Lambdad(keys=keys, func=lambda x: x[0]),
             transforms.EnsureChannelFirstd(keys=keys, channel_dim="no_channel"),
             transforms.EnsureTyped(keys=keys),
-            transforms.Spacingd(keys=keys, pixdim=spacing, mode="bilinear"),
-            transforms.DivisiblePadd(keys=keys, k=32, mode="constant", constant_values=-1.0),
-            transforms.CenterSpatialCropd(keys=keys, roi_size=size),
+            *grid_transforms(keys, spacing, size, mode="bilinear", pad_value=-1.0),
         ]
     )
+
+
+def grid_origin(native_shape: Tuple[int, int, int], spacing: Tuple[float, float, float], size: Tuple[int, int, int]):
+    """Position of voxel 0 of the transformed grid, in native 1 mm voxels, for a volume of `native_shape`."""
+    probe = {"image": MetaTensor(torch.zeros((1, *native_shape)), affine=torch.eye(4))}
+    out = transforms.Compose(grid_transforms(["image"], spacing, size, mode="nearest", pad_value=0.0))(probe)
+    return tuple(float(v) for v in out["image"].affine[:3, 3])
 
 
 def load_split_records(csv_path: str, split_json_path: str, image_key: str):
