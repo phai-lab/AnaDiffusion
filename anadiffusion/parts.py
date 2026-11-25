@@ -113,10 +113,10 @@ class PartExperts:
         self.timesteps = [int(t) for t in self.scheduler.timesteps]
         self.abar = alphas_cumprod(device)
 
-    def _models(self, part: str):
+    def _models(self, part: str, batch: int = 1):
         if part == "sub":
             return self.sub_ae, self.sub_unet, None
-        side = torch.full((1,), HEMISPHERE_SIDE[part], device=self.device, dtype=torch.long)
+        side = torch.full((batch,), HEMISPHERE_SIDE[part], device=self.device, dtype=torch.long)
         return self.hemi_ae, self.hemi_unet, self.hemi_conditioner(side)
 
     @torch.no_grad()
@@ -131,7 +131,7 @@ class PartExperts:
 
         Right-hemisphere crops are expected in the left-canonical orientation.
         """
-        ae, unet, context = self._models(part)
+        ae, unet, context = self._models(part, x_crop.shape[0])
         scale = self.scale[part]
         grid = [t for t in self.timesteps if t <= int(t_part)]
         with autocast(device_type="cuda", enabled=self.amp):
